@@ -1,0 +1,6 @@
+#!/bin/bash
+cd "$(dirname "$0")/../../.."
+export PATH="$HOME/.pyenv/shims:$HOME/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+exec python main.py

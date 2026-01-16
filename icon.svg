@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="90" ry="90" fill="#4285f4"/>
+
+  <!-- Inner white rounded square -->
+  <rect x="60" y="60" width="392" height="392" rx="60" ry="60" fill="#ffffff"/>
+
+  <!-- RSS icon in classic orange -->
+  <!-- Broadcast waves -->
+  <path d="M 140 372 A 232 232 0 0 1 372 140"
+        fill="none"
+        stroke="#ee7b30"
+        stroke-width="52"
+        stroke-linecap="round"/>
+
+  <path d="M 140 280 A 140 140 0 0 1 280 140"
+        fill="none"
+        stroke="#ee7b30"
+        stroke-width="52"
+        stroke-linecap="round"/>
+
+  <!-- Dot -->
+  <circle cx="166" cy="346" r="46" fill="#ee7b30"/>
+</svg>

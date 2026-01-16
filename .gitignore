@@ -1,0 +1,29 @@
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+
+# Database
+*.db
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# py2app build artifacts
+build/
+dist/
+
+# Top-level markdown files (except README.md)
+/*.md
+!README.md
