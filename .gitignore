@@ -20,6 +20,9 @@ venv/
 .idea/
 .vscode/
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # PyInstaller build artifacts
 build/
 dist/
