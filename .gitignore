@@ -20,9 +20,11 @@ venv/
 .idea/
 .vscode/
 
-# py2app build artifacts
+# PyInstaller build artifacts
 build/
 dist/
+*.spec
+!rss_reader.spec
 
 # Top-level markdown files (except README.md)
 /*.md

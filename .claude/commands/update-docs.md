@@ -1,10 +1,12 @@
 ---
-description: Update CLAUDE.md with learnings from current session
+description: Update CLAUDE.md and README.md with learnings from current session
 ---
 
-Please analyze our current session and update CLAUDE.md with any relevant information that would help future Claude Code sessions be more productive.
+Please analyze our current session and update documentation with any relevant information.
 
-Review the following:
+## Part 1: Update CLAUDE.md (Developer Documentation)
+
+Review the following for CLAUDE.md:
 
 1. **Commands we used**: What build, test, deployment, or development commands did we run that aren't documented yet?
 
@@ -20,10 +22,27 @@ Review the following:
 
 7. **Testing approaches**: How are we testing this code? What's the expected coverage or testing methodology?
 
-Before making changes:
-- Read the current CLAUDE.md to avoid duplicating existing content
-- Only add information that would genuinely help future sessions understand this project
-- Keep it concise and actionable
-- Organize new content into the appropriate existing sections, or create new sections if needed
+## Part 2: Update README.md (User Documentation)
 
-After updating, show me a summary of what you added and why it's relevant for future sessions.
+Review the following for README.md:
+
+1. **Installation changes**: Did we change how users install or set up the app?
+
+2. **New features**: Did we add user-facing features that should be listed?
+
+3. **Usage changes**: Did we change how users interact with the app?
+
+4. **Requirements changes**: Did we change system requirements, Python version, or dependencies?
+
+5. **Data storage changes**: Did we change where or how user data is stored?
+
+## Guidelines
+
+Before making changes:
+- Read both CLAUDE.md and README.md to avoid duplicating existing content
+- CLAUDE.md is for developers/Claude Code sessions - include technical details
+- README.md is for end users - keep it simple and user-friendly
+- Only add information that would genuinely help the target audience
+- Keep it concise and actionable
+
+After updating, show me a summary of what you added to each file and why.
