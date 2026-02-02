@@ -96,6 +96,22 @@ body {
     background: var(--bg-hover);
 }
 
+.rating-button {
+    min-width: 40px;
+    padding: 8px 12px;
+}
+
+.rating-button.active {
+    background: var(--accent-color);
+    color: #191919;
+    border-color: var(--accent-color);
+}
+
+.rating-button.active:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
 .btn-icon {
     background: none;
     border: none;

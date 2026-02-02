@@ -12,7 +12,8 @@ A desktop RSS reader for macOS. Built with Python, FastAPI, and pywebview.
 - Organize feeds into folders
 - Mark articles as read/unread
 - Star/favorite articles
-- Filter to show unread articles only
+- Rate articles with thumbs up/down
+- Filter by unread, starred, liked, or disliked
 - Rename feeds with custom names
 - Dark mode UI with modern typography
 
@@ -73,7 +74,8 @@ Output:
 3. Click on articles to read them
 4. Use **Unread only** to filter unread articles
 5. Click the ⭐ to star articles
-6. Hover over feeds to rename or delete them
+6. Use 👍/👎 buttons to rate articles, then filter by **Liked** or **Disliked** in the sidebar
+7. Hover over feeds to rename or delete them
 
 ## Sample Feeds
 

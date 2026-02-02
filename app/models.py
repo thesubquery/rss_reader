@@ -51,6 +51,8 @@ class Article(Base):
     published = Column(DateTime, nullable=True)
     is_read = Column(Boolean, default=False)
     is_starred = Column(Boolean, default=False)
+    is_thumbs_up = Column(Boolean, default=False)
+    is_thumbs_down = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     feed = relationship("Feed", back_populates="articles")

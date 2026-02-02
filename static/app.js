@@ -157,6 +157,12 @@ function renderArticleView(article) {
                     <button class="btn btn-secondary" onclick="toggleRead(${article.id})">
                         ${article.is_read ? 'Mark unread' : 'Mark read'}
                     </button>
+                    <button class="btn btn-secondary rating-button ${article.is_thumbs_up ? 'active' : ''}" onclick="toggleThumbsUp(${article.id})">
+                        👍
+                    </button>
+                    <button class="btn btn-secondary rating-button ${article.is_thumbs_down ? 'active' : ''}" onclick="toggleThumbsDown(${article.id})">
+                        👎
+                    </button>
                     ${article.link ? `<a href="${escapeHtml(article.link)}" target="_blank" class="btn btn-secondary">Open original</a>` : ''}
                 </div>
             </header>
@@ -185,6 +191,10 @@ async function loadArticles() {
 
     if (state.currentView === 'starred') {
         endpoint += '&starred=true';
+    } else if (state.currentView === 'thumbsUp') {
+        endpoint += '&thumbs_up=true';
+    } else if (state.currentView === 'thumbsDown') {
+        endpoint += '&thumbs_down=true';
     } else if (state.currentView === 'feed' && state.currentFeedId) {
         endpoint += `&feed_id=${state.currentFeedId}`;
     } else if (state.currentView === 'folder' && state.currentFolderId) {
@@ -203,6 +213,8 @@ async function updateStats() {
     const stats = await api('/stats');
     document.getElementById('allCount').textContent = stats.unread_articles;
     document.getElementById('starredCount').textContent = stats.starred_articles;
+    document.getElementById('thumbsUpCount').textContent = stats.thumbs_up_articles;
+    document.getElementById('thumbsDownCount').textContent = stats.thumbs_down_articles;
 }
 
 // Selection handlers
@@ -221,7 +233,7 @@ function selectView(view) {
     });
 
     // Update title
-    const titles = { all: 'All Items', starred: 'Starred' };
+    const titles = { all: 'All Items', starred: 'Starred', thumbsUp: 'Liked', thumbsDown: 'Disliked' };
     document.getElementById('currentViewTitle').textContent = titles[view] || 'All Items';
 
     loadArticles();
@@ -336,6 +348,60 @@ async function toggleRead(articleId) {
     }
     loadFeeds();
     loadFolders();
+}
+
+async function toggleThumbsUp(articleId) {
+    const article = state.articles.find(a => a.id === articleId);
+    if (!article) return;
+
+    const newThumbsUp = !article.is_thumbs_up;
+    const update = { is_thumbs_up: newThumbsUp };
+    // Clear thumbs down if setting thumbs up
+    if (newThumbsUp && article.is_thumbs_down) {
+        update.is_thumbs_down = false;
+    }
+
+    await api(`/articles/${articleId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(update),
+    });
+
+    article.is_thumbs_up = newThumbsUp;
+    if (update.is_thumbs_down === false) {
+        article.is_thumbs_down = false;
+    }
+    renderArticles();
+    if (state.currentArticleId === articleId) {
+        renderArticleView(article);
+    }
+    updateStats();
+}
+
+async function toggleThumbsDown(articleId) {
+    const article = state.articles.find(a => a.id === articleId);
+    if (!article) return;
+
+    const newThumbsDown = !article.is_thumbs_down;
+    const update = { is_thumbs_down: newThumbsDown };
+    // Clear thumbs up if setting thumbs down
+    if (newThumbsDown && article.is_thumbs_up) {
+        update.is_thumbs_up = false;
+    }
+
+    await api(`/articles/${articleId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(update),
+    });
+
+    article.is_thumbs_down = newThumbsDown;
+    if (update.is_thumbs_up === false) {
+        article.is_thumbs_up = false;
+    }
+    renderArticles();
+    if (state.currentArticleId === articleId) {
+        renderArticleView(article);
+    }
+    updateStats();
 }
 
 async function markAllRead() {
