@@ -77,6 +77,8 @@ class ArticleResponse(BaseModel):
     published: Optional[datetime]
     is_read: bool
     is_starred: bool
+    is_thumbs_up: bool
+    is_thumbs_down: bool
 
     class Config:
         from_attributes = True
@@ -85,6 +87,8 @@ class ArticleResponse(BaseModel):
 class ArticleUpdate(BaseModel):
     is_read: Optional[bool] = None
     is_starred: Optional[bool] = None
+    is_thumbs_up: Optional[bool] = None
+    is_thumbs_down: Optional[bool] = None
 
 
 class FeedUpdate(BaseModel):
@@ -361,6 +365,8 @@ def get_articles(
     folder_id: Optional[int] = None,
     starred: Optional[bool] = None,
     unread: Optional[bool] = None,
+    thumbs_up: Optional[bool] = None,
+    thumbs_down: Optional[bool] = None,
     limit: int = 100,
     offset: int = 0,
     db: Session = Depends(get_db),
@@ -375,6 +381,10 @@ def get_articles(
         query = query.filter(Article.is_starred == starred)
     if unread is not None:
         query = query.filter(Article.is_read == (not unread))
+    if thumbs_up is not None:
+        query = query.filter(Article.is_thumbs_up == thumbs_up)
+    if thumbs_down is not None:
+        query = query.filter(Article.is_thumbs_down == thumbs_down)
 
     articles = query.order_by(Article.published.desc().nullslast()).offset(offset).limit(limit).all()
 
@@ -391,6 +401,8 @@ def get_articles(
             published=a.published,
             is_read=a.is_read,
             is_starred=a.is_starred,
+            is_thumbs_up=a.is_thumbs_up or False,
+            is_thumbs_down=a.is_thumbs_down or False,
         )
         for a in articles
     ]
@@ -413,6 +425,8 @@ def get_article(article_id: int, db: Session = Depends(get_db)):
         published=article.published,
         is_read=article.is_read,
         is_starred=article.is_starred,
+        is_thumbs_up=article.is_thumbs_up or False,
+        is_thumbs_down=article.is_thumbs_down or False,
     )
 
 
@@ -426,6 +440,10 @@ def update_article(article_id: int, update: ArticleUpdate, db: Session = Depends
         article.is_read = update.is_read
     if update.is_starred is not None:
         article.is_starred = update.is_starred
+    if update.is_thumbs_up is not None:
+        article.is_thumbs_up = update.is_thumbs_up
+    if update.is_thumbs_down is not None:
+        article.is_thumbs_down = update.is_thumbs_down
 
     db.commit()
     db.refresh(article)
@@ -442,6 +460,8 @@ def update_article(article_id: int, update: ArticleUpdate, db: Session = Depends
         published=article.published,
         is_read=article.is_read,
         is_starred=article.is_starred,
+        is_thumbs_up=article.is_thumbs_up or False,
+        is_thumbs_down=article.is_thumbs_down or False,
     )
 
 
@@ -471,9 +491,13 @@ def get_stats(db: Session = Depends(get_db)):
     total_articles = db.query(func.count(Article.id)).scalar()
     unread_articles = db.query(func.count(Article.id)).filter(Article.is_read == False).scalar()
     starred_articles = db.query(func.count(Article.id)).filter(Article.is_starred == True).scalar()
+    thumbs_up_articles = db.query(func.count(Article.id)).filter(Article.is_thumbs_up == True).scalar()
+    thumbs_down_articles = db.query(func.count(Article.id)).filter(Article.is_thumbs_down == True).scalar()
     return {
         "total_feeds": total_feeds,
         "total_articles": total_articles,
         "unread_articles": unread_articles,
         "starred_articles": starred_articles,
+        "thumbs_up_articles": thumbs_up_articles,
+        "thumbs_down_articles": thumbs_down_articles,
     }
