@@ -1,3 +1,4 @@
+import sys
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -12,10 +13,21 @@ from .database import get_db, init_db
 from .models import Folder, Feed, Article
 from .feed_parser import fetch_and_parse_feed
 
+
+def get_base_path() -> Path:
+    """Get the base path for static files, handling frozen apps."""
+    if getattr(sys, 'frozen', False):
+        # Running as bundled app - files are in _MEIPASS
+        return Path(sys._MEIPASS)
+    else:
+        # Running in development
+        return Path(__file__).parent.parent
+
+
 app = FastAPI(title="RSS Reader")
 
 # Mount static files
-static_path = Path(__file__).parent.parent / "static"
+static_path = get_base_path() / "static"
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 
