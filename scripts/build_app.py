@@ -22,9 +22,11 @@ from pathlib import Path
 
 # Paths relative to project root
 PROJECT_ROOT = Path(__file__).parent.parent
-APP_DIR = PROJECT_ROOT / "dist" / "RSS Reader.app"
+DIST_DIR = PROJECT_ROOT / "dist"
+BUILD_DIR = PROJECT_ROOT / "build"
+APP_DIR = DIST_DIR / "RSS Reader.app"
 PLIST_PATH = APP_DIR / "Contents" / "Info.plist"
-DMG_PATH = PROJECT_ROOT / "dist" / "RSS Reader.dmg"
+DMG_PATH = DIST_DIR / "RSS Reader.dmg"
 ICON_PATH = PROJECT_ROOT / "icon.icns"
 
 # Add project root to path so we can import app.version
@@ -40,9 +42,19 @@ def run_command(cmd: list[str], description: str) -> bool:
 
     result = subprocess.run(cmd, cwd=PROJECT_ROOT)
     if result.returncode != 0:
-        print(f"Error: {description} failed with code {result.returncode}")
+        print(f"ERROR: {description} failed with code {result.returncode}")
         return False
     return True
+
+
+def clean_previous_build():
+    """Remove previous build artifacts."""
+    print("\nCleaning previous build artifacts...")
+
+    for path in [DIST_DIR, BUILD_DIR]:
+        if path.exists():
+            shutil.rmtree(path)
+            print(f"  Removed: {path}")
 
 
 def build_with_pyinstaller() -> bool:
@@ -70,7 +82,7 @@ def update_plist() -> bool:
     print(f"{'='*60}")
 
     if not PLIST_PATH.exists():
-        print(f"Error: Info.plist not found at {PLIST_PATH}")
+        print(f"ERROR: Info.plist not found at {PLIST_PATH}")
         return False
 
     try:
@@ -88,7 +100,7 @@ def update_plist() -> bool:
         return True
 
     except Exception as e:
-        print(f"Error updating Info.plist: {e}")
+        print(f"ERROR: Failed to update Info.plist: {e}")
         return False
 
 
@@ -114,7 +126,7 @@ def create_dmg() -> bool:
 
     result = subprocess.run(cmd, cwd=PROJECT_ROOT)
     if result.returncode != 0:
-        print(f"Error: DMG creation failed")
+        print("ERROR: DMG creation failed")
         return False
 
     # Get DMG size
@@ -123,13 +135,57 @@ def create_dmg() -> bool:
     return True
 
 
+def print_summary(include_dmg: bool):
+    """Print build summary with file locations."""
+    print("\n" + "="*60)
+    print("BUILD COMPLETE")
+    print("="*60)
+
+    print(f"\nVersion: {VERSION}")
+
+    if APP_DIR.exists():
+        print(f"Application: {APP_DIR}")
+
+    if include_dmg and DMG_PATH.exists():
+        size_mb = DMG_PATH.stat().st_size / (1024 * 1024)
+        print(f"DMG Image:   {DMG_PATH} ({size_mb:.1f} MB)")
+
+    print("\nTo install:")
+    print("  1. Open the DMG file")
+    print("  2. Drag 'RSS Reader' to Applications")
+    print("  3. Launch from Applications folder")
+    print("\nNote: On first launch, you may need to right-click the app")
+    print("      and select 'Open' to bypass Gatekeeper.")
+    print("\nData location: ~/Library/Application Support/RSS Reader/")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Build RSS Reader macOS application")
     parser.add_argument("--no-dmg", action="store_true", help="Skip DMG creation")
     parser.add_argument("--skip-build", action="store_true", help="Skip PyInstaller build (only update plist)")
     args = parser.parse_args()
 
-    print(f"Building RSS Reader v{VERSION}")
+    print(f"RSS Reader Build Script - v{VERSION}")
+    print("="*60)
+
+    # Check PyInstaller is available
+    if not args.skip_build:
+        try:
+            subprocess.run([sys.executable, "-m", "PyInstaller", "--version"],
+                         capture_output=True, check=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("ERROR: PyInstaller not found. Install with:")
+            print("  pip install -r requirements-dev.txt")
+            sys.exit(1)
+
+    # Check we're in the right directory
+    if not (PROJECT_ROOT / "main.py").exists():
+        print("ERROR: main.py not found. Run from project root.")
+        sys.exit(1)
+
+    # Clean previous build
+    if not args.skip_build:
+        clean_previous_build()
 
     # Build with PyInstaller
     if not args.skip_build:
@@ -143,15 +199,9 @@ def main():
     # Create DMG
     if not args.no_dmg:
         if not create_dmg():
-            sys.exit(1)
+            print("WARNING: DMG creation failed, but app was built successfully.")
 
-    print(f"\n{'='*60}")
-    print("Build complete!")
-    print(f"{'='*60}")
-    print(f"App: {APP_DIR}")
-    if not args.no_dmg:
-        print(f"DMG: {DMG_PATH}")
-    print(f"Version: {VERSION}")
+    print_summary(include_dmg=not args.no_dmg)
 
 
 if __name__ == "__main__":

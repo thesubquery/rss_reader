@@ -30,14 +30,31 @@ Do NOT proceed to planning until you have enough information to implement the fe
 
 ### Step 3: Create Implementation Plan
 
-1. Use EnterPlanMode to create a detailed implementation plan
-2. The plan should include:
+1. **Check for existing plan**: Search in `.claude/plans/` directory for a file matching the feature number (e.g., `FEAT-0001-*.md`)
+   - **If a plan exists**: Read it and use it as the starting point. Ask the user if they want to proceed with this plan or modify it.
+   - **If no plan exists**: Continue to create a new plan.
+
+2. Use EnterPlanMode to create a detailed implementation plan. The plan should include:
    - Files to modify or create
    - Key changes in each file
    - Order of implementation
    - Any database migrations needed
    - Frontend changes if applicable
-3. Get user approval on the plan before proceeding
+
+3. **Save the plan**: Once the plan is finalized, save it to `.claude/plans/` with the filename format:
+   ```
+   FEAT-XXXX-feature-name.md
+   ```
+   Example: `FEAT-0001-full-article-retrieval.md`
+
+   The plan file should include:
+   - Feature ID and title
+   - Original feature description from BACKLOG.md
+   - Clarified requirements from Step 2
+   - The complete implementation plan
+   - Any notes or decisions made during planning
+
+4. Get user approval on the plan before proceeding
 
 ### Step 4: Create Feature Branch
 

@@ -4,7 +4,7 @@ A desktop RSS reader for macOS. Built with Python, FastAPI, and pywebview.
 
 ![Dark mode UI](https://img.shields.io/badge/UI-Dark%20Mode-191919)
 ![macOS](https://img.shields.io/badge/platform-macOS-lightgrey)
-![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue)
+![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue)
 
 ## Features
 
@@ -12,74 +12,60 @@ A desktop RSS reader for macOS. Built with Python, FastAPI, and pywebview.
 - Organize feeds into folders
 - Mark articles as read/unread
 - Star/favorite articles
-- Filter to show unread articles only
+- Rate articles with thumbs up/down
+- Filter by unread, starred, liked, or disliked
 - Rename feeds with custom names
 - Dark mode UI with modern typography
 
 ## Installation
 
-### Prerequisites
+### Option 1: Download the App (Recommended)
+
+1. Download `RSS Reader.dmg` from the [Releases](../../releases) page
+2. Open the DMG and drag **RSS Reader** to your Applications folder
+3. Launch from Applications
+
+> **Note:** On first launch, macOS may show a security warning. Right-click the app and select "Open" to bypass Gatekeeper.
+
+### Option 2: Build from Source
+
+#### Prerequisites
 
 - macOS 10.13 or later
-- [Homebrew](https://brew.sh/)
+- Python 3.11+ (via [pyenv](https://github.com/pyenv/pyenv) recommended)
 
-### Step 1: Install pyenv and Python
-
-```bash
-# Install pyenv and pyenv-virtualenv
-brew install pyenv pyenv-virtualenv
-
-# Add to your shell profile (~/.zshrc or ~/.bash_profile)
-echo 'eval "$(pyenv init -)"' >> ~/.zshrc
-echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
-source ~/.zshrc
-
-# Install Python 3.10
-pyenv install 3.10.0
-```
-
-### Step 2: Clone and set up the project
+#### Setup
 
 ```bash
 # Clone the repository
 git clone <repository-url> rss_reader
 cd rss_reader
 
-# Create virtual environment
-pyenv virtualenv 3.10.0 rss_reader
-pyenv local rss_reader
+# Create virtual environment (if using pyenv)
+pyenv install 3.11.11
+pyenv virtualenv 3.11.11 rss_reader_311
+pyenv local rss_reader_311
 
 # Install dependencies
 pip install -r requirements.txt
-```
 
-### Step 3: Run the application
-
-```bash
+# Run the application
 python main.py
 ```
 
-This opens a native macOS window with the RSS reader.
+#### Building the Standalone App
 
-## Installing as a macOS App
+```bash
+# Install build dependencies
+pip install -r requirements-dev.txt
 
-A pre-built app bundle is included at `RSS Reader.app`.
+# Build app and DMG
+python scripts/build_app.py
+```
 
-**To install:**
-
-1. Move the `rss_reader` folder to a permanent location:
-   ```bash
-   mv rss_reader ~/Applications/
-   ```
-
-2. Copy `RSS Reader.app` to your Applications folder:
-   ```bash
-   cp -r ~/Applications/rss_reader/RSS\ Reader.app /Applications/
-   ```
-
-3. Launch from Applications or add to Dock
-
-**Note:** The app bundle references the project folder. If you move the project, update the path in `RSS Reader.app/Contents/MacOS/RSS Reader`.
+Output:
+- `dist/RSS Reader.app` - Standalone application
+- `dist/RSS Reader.dmg` - Distributable disk image
 
 ## Usage
 
@@ -88,7 +74,8 @@ A pre-built app bundle is included at `RSS Reader.app`.
 3. Click on articles to read them
 4. Use **Unread only** to filter unread articles
 5. Click the ⭐ to star articles
-6. Hover over feeds to rename or delete them
+6. Use 👍/👎 buttons to rate articles, then filter by **Liked** or **Disliked** in the sidebar
+7. Hover over feeds to rename or delete them
 
 ## Sample Feeds
 
@@ -102,7 +89,8 @@ https://daringfireball.net/feeds/main
 
 ## Data Storage
 
-- **Database:** `rss_reader.db` (SQLite) in the project root
+- **Standalone app:** `~/Library/Application Support/RSS Reader/rss_reader.db`
+- **Development:** `rss_reader.db` in the project root
 - **Backup:** Copy `rss_reader.db` to back up all feeds and articles
 
 ## License
