@@ -1,30 +1,41 @@
 #!/usr/bin/env python3
 """
-Build script for RSS Reader macOS application.
+Build the RSS Reader macOS application.
 
-Creates:
-1. RSS Reader.app - Standalone macOS application
-2. RSS Reader.dmg - Distributable disk image
+This script:
+1. Reads version from app/version.py
+2. Runs PyInstaller to create the app bundle
+3. Updates Info.plist with the current version
+4. Creates a DMG for distribution
 
 Usage:
-    python scripts/build_app.py
+    python scripts/build_app.py           # Build app and DMG
+    python scripts/build_app.py --no-dmg  # Build app only
 """
 
-import subprocess
+import argparse
+import plistlib
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
-# Project paths
+# Paths relative to project root
 PROJECT_ROOT = Path(__file__).parent.parent
 DIST_DIR = PROJECT_ROOT / "dist"
 BUILD_DIR = PROJECT_ROOT / "build"
-APP_NAME = "RSS Reader"
-DMG_NAME = f"{APP_NAME}.dmg"
+APP_DIR = DIST_DIR / "RSS Reader.app"
+PLIST_PATH = APP_DIR / "Contents" / "Info.plist"
+DMG_PATH = DIST_DIR / "RSS Reader.dmg"
+ICON_PATH = PROJECT_ROOT / "icon.icns"
+
+# Add project root to path so we can import app.version
+sys.path.insert(0, str(PROJECT_ROOT))
+from app.version import VERSION
 
 
 def run_command(cmd: list[str], description: str) -> bool:
-    """Run a command and return success status."""
+    """Run a command and return True if successful."""
     print(f"\n{'='*60}")
     print(f"{description}...")
     print(f"{'='*60}")
@@ -46,56 +57,98 @@ def clean_previous_build():
             print(f"  Removed: {path}")
 
 
-def build_app():
-    """Build the application using PyInstaller."""
-    return run_command(
-        ["pyinstaller", "--clean", "rss_reader.spec"],
-        "Building application with PyInstaller"
-    )
+def build_with_pyinstaller() -> bool:
+    """Build the app using PyInstaller."""
+    cmd = [
+        sys.executable, "-m", "PyInstaller",
+        "--name", "RSS Reader",
+        "--windowed",
+        "--icon", str(ICON_PATH),
+        "--add-data", "static:static",
+        "--add-data", "app:app",
+        "--noconfirm",
+        "--clean",
+        # macOS specific options
+        "--osx-bundle-identifier", "com.rssreader.app",
+        "main.py"
+    ]
+    return run_command(cmd, "Building with PyInstaller")
 
 
-def create_dmg():
-    """Create a DMG disk image for distribution."""
-    app_path = DIST_DIR / f"{APP_NAME}.app"
-    dmg_path = DIST_DIR / DMG_NAME
+def update_plist() -> bool:
+    """Update Info.plist with version from app/version.py."""
+    print(f"\n{'='*60}")
+    print(f"Updating Info.plist with version {VERSION}...")
+    print(f"{'='*60}")
 
-    if not app_path.exists():
-        print(f"ERROR: Application not found at {app_path}")
+    if not PLIST_PATH.exists():
+        print(f"ERROR: Info.plist not found at {PLIST_PATH}")
         return False
 
-    # Remove existing DMG if present
-    if dmg_path.exists():
-        dmg_path.unlink()
+    try:
+        with open(PLIST_PATH, "rb") as f:
+            plist = plistlib.load(f)
+
+        plist["CFBundleVersion"] = VERSION
+        plist["CFBundleShortVersionString"] = VERSION
+
+        with open(PLIST_PATH, "wb") as f:
+            plistlib.dump(plist, f)
+
+        print(f"Updated CFBundleVersion to {VERSION}")
+        print(f"Updated CFBundleShortVersionString to {VERSION}")
+        return True
+
+    except Exception as e:
+        print(f"ERROR: Failed to update Info.plist: {e}")
+        return False
+
+
+def create_dmg() -> bool:
+    """Create a DMG file for distribution."""
+    print(f"\n{'='*60}")
+    print("Creating DMG...")
+    print(f"{'='*60}")
+
+    # Remove existing DMG
+    if DMG_PATH.exists():
+        DMG_PATH.unlink()
 
     # Create DMG using hdiutil
-    return run_command(
-        [
-            "hdiutil", "create",
-            "-volname", APP_NAME,
-            "-srcfolder", str(app_path),
-            "-ov",
-            "-format", "UDZO",
-            str(dmg_path)
-        ],
-        "Creating DMG disk image"
-    )
+    cmd = [
+        "hdiutil", "create",
+        "-volname", "RSS Reader",
+        "-srcfolder", str(APP_DIR),
+        "-ov",
+        "-format", "UDZO",
+        str(DMG_PATH)
+    ]
+
+    result = subprocess.run(cmd, cwd=PROJECT_ROOT)
+    if result.returncode != 0:
+        print("ERROR: DMG creation failed")
+        return False
+
+    # Get DMG size
+    size_mb = DMG_PATH.stat().st_size / (1024 * 1024)
+    print(f"Created: {DMG_PATH} ({size_mb:.1f} MB)")
+    return True
 
 
-def print_summary():
+def print_summary(include_dmg: bool):
     """Print build summary with file locations."""
-    app_path = DIST_DIR / f"{APP_NAME}.app"
-    dmg_path = DIST_DIR / DMG_NAME
-
     print("\n" + "="*60)
     print("BUILD COMPLETE")
     print("="*60)
 
-    if app_path.exists():
-        print(f"\nApplication: {app_path}")
+    print(f"\nVersion: {VERSION}")
 
-    if dmg_path.exists():
-        size_mb = dmg_path.stat().st_size / (1024 * 1024)
-        print(f"DMG Image:   {dmg_path} ({size_mb:.1f} MB)")
+    if APP_DIR.exists():
+        print(f"Application: {APP_DIR}")
+
+    if include_dmg and DMG_PATH.exists():
+        size_mb = DMG_PATH.stat().st_size / (1024 * 1024)
+        print(f"DMG Image:   {DMG_PATH} ({size_mb:.1f} MB)")
 
     print("\nTo install:")
     print("  1. Open the DMG file")
@@ -107,33 +160,48 @@ def print_summary():
 
 
 def main():
-    """Main build process."""
-    print("RSS Reader Build Script")
+    parser = argparse.ArgumentParser(description="Build RSS Reader macOS application")
+    parser.add_argument("--no-dmg", action="store_true", help="Skip DMG creation")
+    parser.add_argument("--skip-build", action="store_true", help="Skip PyInstaller build (only update plist)")
+    args = parser.parse_args()
+
+    print(f"RSS Reader Build Script - v{VERSION}")
     print("="*60)
 
     # Check PyInstaller is available
-    try:
-        subprocess.run(["pyinstaller", "--version"], capture_output=True, check=True)
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("ERROR: PyInstaller not found. Install with:")
-        print("  pip install pyinstaller")
-        sys.exit(1)
+    if not args.skip_build:
+        try:
+            subprocess.run([sys.executable, "-m", "PyInstaller", "--version"],
+                         capture_output=True, check=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("ERROR: PyInstaller not found. Install with:")
+            print("  pip install -r requirements-dev.txt")
+            sys.exit(1)
 
     # Check we're in the right directory
     if not (PROJECT_ROOT / "main.py").exists():
         print("ERROR: main.py not found. Run from project root.")
         sys.exit(1)
 
-    # Build process
-    clean_previous_build()
+    # Clean previous build
+    if not args.skip_build:
+        clean_previous_build()
 
-    if not build_app():
+    # Build with PyInstaller
+    if not args.skip_build:
+        if not build_with_pyinstaller():
+            sys.exit(1)
+
+    # Update Info.plist
+    if not update_plist():
         sys.exit(1)
 
-    if not create_dmg():
-        print("WARNING: DMG creation failed, but app was built successfully.")
+    # Create DMG
+    if not args.no_dmg:
+        if not create_dmg():
+            print("WARNING: DMG creation failed, but app was built successfully.")
 
-    print_summary()
+    print_summary(include_dmg=not args.no_dmg)
 
 
 if __name__ == "__main__":

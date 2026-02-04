@@ -58,28 +58,75 @@ Do NOT proceed to planning until you have enough information to implement the fe
 
 ### Step 4: Create Feature Branch
 
-Once the plan is approved:
+Once the plan is approved, output (but do NOT run) the command to create a feature branch:
 
-1. Ensure git working directory is clean (warn user if there are uncommitted changes)
-2. Create a new branch from main with the naming convention:
-   ```
-   feature/FEAT-XXXX-short-description
-   ```
-   Example: `feature/FEAT-0001-full-article-retrieval`
-3. Confirm branch creation to the user
+```bash
+git checkout -b feature/FEAT-XXXX-short-description
+```
+
+Example: `git checkout -b feature/FEAT-0001-full-article-retrieval`
+
+Let the user run the command themselves. Wait for confirmation before proceeding to implementation.
 
 ### Step 5: Implement the Feature
 
 1. Follow the approved plan
 2. Use TodoWrite to track progress through implementation steps
-3. Make atomic commits with messages referencing the feature ID:
+3. After completing implementation, update documentation:
+   - Run `/update-docs` to update CLAUDE.md and README.md with any relevant changes
+
+### Step 6: Review and Submit
+
+1. **Local testing**: Ask the user to test the feature by running the app locally (`python main.py`)
+2. **Distribution testing**: Ask the user to build and test the standalone app:
+   ```bash
+   python scripts/build_app.py
    ```
-   [FEAT-XXXX] Commit message describing the change
+   Then test the DMG/app from `dist/` folder
+3. **Once review is accepted**: Output (but do NOT run) the following commands:
+
+   **Commit command** - Output a bash command to commit all changes:
+   ```bash
+   git add -A && git commit -m "$(cat <<'EOF'
+   [FEAT-XXXX] Feature title
+
+   Summary of changes...
+
+   Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+   EOF
+   )"
    ```
-4. After completing implementation, remind the user to:
-   - Test the feature
-   - Update BACKLOG.md to mark the feature as completed (move to Completed section)
-   - Create a PR when ready
+
+   **Pull request command** - Output a bash command to create a PR:
+   ```bash
+   git push -u origin feature/FEAT-XXXX-short-description && gh pr create --title "[FEAT-XXXX] Feature title" --body "$(cat <<'EOF'
+   ## Summary
+   - Bullet points of changes
+
+   ## Test plan
+   - [ ] Test steps
+
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+   EOF
+   )"
+   ```
+
+4. Let the user run the commands themselves to save tokens
+
+### Step 7: Update BACKLOG.md
+
+After the PR is created:
+
+1. Move the feature from its current section to the **Completed** section
+2. Change the checkbox from `- [ ]` to `- [x]`
+3. Keep the feature ID and description intact
+
+Example:
+```markdown
+## Completed
+
+- [x] **[FEAT-0003] Thumbs up/down rating** - Allow users to rate articles with thumbs up or down
+```
 
 ## Example Interactions
 

@@ -3,6 +3,7 @@ Setup script for creating RSS Reader macOS application.
 Run: python setup.py py2app
 """
 from setuptools import setup
+from app.version import VERSION
 
 APP = ['main.py']
 DATA_FILES = [('static', [
@@ -17,8 +18,8 @@ OPTIONS = {
         'CFBundleName': 'RSS Reader',
         'CFBundleDisplayName': 'RSS Reader',
         'CFBundleIdentifier': 'com.rssreader.app',
-        'CFBundleVersion': '1.0.0',
-        'CFBundleShortVersionString': '1.0.0',
+        'CFBundleVersion': VERSION,
+        'CFBundleShortVersionString': VERSION,
         'NSHighResolutionCapable': True,
     },
     'packages': ['app', 'uvicorn', 'fastapi', 'sqlalchemy', 'feedparser',
