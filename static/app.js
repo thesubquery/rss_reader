@@ -167,7 +167,7 @@ function renderArticleView(article) {
                 </div>
             </header>
             <div class="article-content-body">
-                ${article.content || article.summary || '<p>No content available</p>'}
+                ${DOMPurify.sanitize(article.content || article.summary || '<p>No content available</p>')}
             </div>
         </div>
     `;
